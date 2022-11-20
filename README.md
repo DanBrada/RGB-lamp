@@ -16,9 +16,10 @@ Built for ESP32 with BLE for maximized autism
 
 ##### Firmware
     pio build
+    pio upload
 
 ##### Filesystem
 not used
 
 #### App build
-TODO
+expo magic
