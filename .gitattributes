@@ -2,3 +2,6 @@
 app/android export-ignore gitlab-generated linguist-generated
 app/android/* export-ignore gitlab-generated linguist-generated
 app/assets/* binary -diff
+
+*.java gitlab-generated linguist-generated
+*.jar gitlab-generated linguist-generated
