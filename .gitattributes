@@ -1,0 +1,3 @@
+* eol=lf
+app/android export-ignore gitlab-generated linguist-generated
+app/assets/* binary -diff
