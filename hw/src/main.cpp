@@ -8,9 +8,10 @@
 #include <ArduinoJson.h>
 
 #define NEOPIXEL_PIN 19
-#define NEOPIXELS 4
+#define NEOPIXELS 11
 #define BTN_PIN 21
 #define DHT11_PIN 18
+#define PHOTO_PIN 33
 
 /***************/
 #define SERVICE_UUID "be17f099-e27e-46a6-afd3-64f9a36b6ded"
@@ -66,10 +67,12 @@ bool customBufferPeriodPassed(int thePeriod, unsigned long &buffer) {
 	return isHasPasssed;
 }
 
+
 void sendDeviceUpdate() {
 	if (deviceIsConencted) {
-		char msg[512];
-		sprintf(msg, "%.2f,%.2f,%s", teplota, vlhkost, lampIsOn ? "true" : "false");
+		char msg[2048];
+		sprintf(msg, "%.2f,%.2f,%s,%ld,%d", teplota, vlhkost, lampIsOn ? "true" : "false",
+				map(analogRead(PHOTO_PIN), 0, 4096, 0, 100), selectMode);
 		pCharacteristic->setValue(msg);
 		pCharacteristic->notify();
 	}
@@ -191,6 +194,7 @@ void setup() {
 	pAdvertising->setScanResponse(true);
 	pAdvertising->setMinPreferred(0x06);  // functions that help with iPhone connections issue
 	pAdvertising->setMinPreferred(0x12);
+	BLEDevice::setMTU(30);
 	BLEDevice::startAdvertising();
 
 	attachInterrupt(digitalPinToInterrupt(BTN_PIN), buttonSwitch, FALLING);
@@ -230,11 +234,13 @@ void loop() {
 				pixels.fill(fillColor);
 				break;
 			case 2:
-				rainbowCycle(75;);
+				rainbowCycle(20);
 				break;
 			default:
 				pixels.clear();
 		}
+
+		pixels.setBrightness(globalBrightness);
 	} else pixels.clear();
 	pixels.show();
 
