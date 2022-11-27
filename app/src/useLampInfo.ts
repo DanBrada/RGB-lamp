@@ -1,7 +1,7 @@
 import {useEffect, useState} from "react";
 import {ConnectionInfo} from "./ConnectionInfo";
 import {BleManager, Device, DeviceId} from "react-native-ble-plx";
-import {SensorsInfo} from "./SensorsInfo";
+import {modeNumberToString, SensorsInfo} from "./SensorsInfo";
 import base64 from "react-native-base64"
 
 const manager = new BleManager();
@@ -14,6 +14,7 @@ export function useLampInfo(serviceUid: string, CharacteristicUUID: string) {
 	const [deviceName, setDeviceName] = useState<string>(null)
 	const [deviceId, setDeviceId] = useState<DeviceId>(null)
 	const [currentMode, updateCurrentMode] = useState<string>("weather")
+	const [brightness, updateBrightness] = useState<number>(100)
 
 	useEffect(() => {
 		manager.startDeviceScan([serviceUid], null, (e, device) => {
@@ -45,11 +46,13 @@ export function useLampInfo(serviceUid: string, CharacteristicUUID: string) {
 		connection,
 		devices,
 		deviceName,
+		brightness,
+		updateBrightness,
 		toggle: () => {
 			manager.writeCharacteristicWithResponseForDevice(deviceId, serviceUid, CharacteristicUUID, base64.encode(JSON.stringify({
 				state: !lampEnabled,
 				mode: currentMode,
-				brightness: 100
+				brightness
 			}))).then(char => {
 				console.log("characteristic written")
 			})
@@ -60,7 +63,7 @@ export function useLampInfo(serviceUid: string, CharacteristicUUID: string) {
 			manager.writeCharacteristicWithResponseForDevice(deviceId, serviceUid, CharacteristicUUID, base64.encode(JSON.stringify({
 				state: lampEnabled,
 				mode: "fill",
-				brightness: 100,
+				brightness,
 				value: {
 					r: Number(`0x${color.substring(1, 3)}`),
 					g: Number(`0x${color.substring(3, 5)}`),
@@ -76,7 +79,7 @@ export function useLampInfo(serviceUid: string, CharacteristicUUID: string) {
 			manager.writeCharacteristicWithResponseForDevice(deviceId, serviceUid, CharacteristicUUID, base64.encode(JSON.stringify({
 				state: lampEnabled,
 				mode: "weather",
-				brightness: 100
+				brightness
 			}))).then(char => {
 				updateCurrentMode("weather")
 				console.log("characteristic written")
@@ -87,7 +90,7 @@ export function useLampInfo(serviceUid: string, CharacteristicUUID: string) {
 			manager.writeCharacteristicWithResponseForDevice(deviceId, serviceUid, CharacteristicUUID, base64.encode(JSON.stringify({
 				state: lampEnabled,
 				mode: "rainbow",
-				brightness: 100
+				brightness
 			}))).then(char => {
 				updateCurrentMode("rainbow")
 				console.log("characteristic written")
@@ -107,9 +110,11 @@ export function useLampInfo(serviceUid: string, CharacteristicUUID: string) {
 							console.log(val)
 
 							updateSensorsInfo({
-								temeprature: parseFloat(valSplit[0]),
-								humidity: parseFloat(valSplit[1]),
-								lampStatus: valSplit[2] == "true"
+								temeprature: isNaN(parseFloat(valSplit[0])) && sensorInfo !== null? sensorInfo.temeprature: parseFloat(valSplit[0]),
+								humidity: isNaN(parseFloat(valSplit[1]))  && sensorInfo !== null? sensorInfo.humidity: parseFloat(valSplit[1]),
+								lampStatus: valSplit[2] == "true",
+								bright: parseInt(valSplit[3]),
+								currentMode: modeNumberToString(parseInt(valSplit[4]))
 							})
 
 							updateConnection(ConnectionInfo.CONNECTED)
@@ -123,6 +128,9 @@ export function useLampInfo(serviceUid: string, CharacteristicUUID: string) {
 					})
 
 					console.log("Done setting up device!")
+
+					d.requestMTU(30)
+						.then(()=>{console.log("MTU updated")});
 
 					d.onDisconnected((er, dev) => {
 						console.warn("Disconnected")

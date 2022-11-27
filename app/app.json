@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "app",
+    "name": "RGB Lampička",
     "slug": "app",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -44,10 +44,17 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      ["@config-plugins/react-native-ble-plx",
-		{
-		  "isBackgroundEnabled": true
-		}]
-    ]
+      [
+        "@config-plugins/react-native-ble-plx",
+        {
+          "isBackgroundEnabled": true
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "099aa7bf-863f-4304-bf6e-56f4e19ed3f8"
+      }
+    }
   }
 }
